@@ -1,0 +1,158 @@
+name: Deploy Academy CMS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: ekklo-academy-cms
+
+jobs:
+  build-and-deploy:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Send Discord notification - Start
+        shell: bash
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub CI/CD Bot
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        run: |
+          payload=$(cat <<EOF | jq -c .
+          {
+            "username": "$DISCORD_USERNAME",
+            "avatar_url": "$DISCORD_AVATAR",
+            "embeds": [{
+              "title": "Academy CMS - Deployment Started",
+              "description": "Deploying ${{ env.SERVICE_NAME }}",
+              "color": 3447003,
+              "fields": [
+                {
+                  "name": "Service",
+                  "value": "${{ env.SERVICE_NAME }}",
+                  "inline": true
+                },
+                {
+                  "name": "Branch",
+                  "value": "${{ github.ref_name }}",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered by",
+                  "value": "${{ github.actor }}",
+                  "inline": true
+                }
+              ],
+              "footer": {
+                "text": "Deployment started at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              }
+            }]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -X POST -d "$payload" $DISCORD_WEBHOOK
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.REGISTRY_URL }}/${{ env.SERVICE_NAME }}:latest
+
+      - name: Trigger Coolify deploy
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "${{ secrets.COOLIFY_API_DOMAIN }}/api/v1/deploy?uuid=${{ secrets.COOLIFY_PRODUCTION_PROJECT_UUID }}"
+          method: "GET"
+          bearerToken: ${{ secrets.COOLIFY_API_TOKEN }}
+
+      - name: Send Discord notification - Success
+        if: success()
+        shell: bash
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub CI/CD Bot
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        run: |
+          payload=$(cat <<EOF | jq -c .
+          {
+            "username": "$DISCORD_USERNAME",
+            "avatar_url": "$DISCORD_AVATAR",
+            "embeds": [{
+              "title": "Academy CMS - Deployment Succeeded",
+              "color": 3066993,
+              "fields": [
+                {
+                  "name": "Service",
+                  "value": "${{ env.SERVICE_NAME }}",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "[\`${{ github.sha }}\`](${{ github.event.head_commit.url }})",
+                  "inline": false
+                }
+              ],
+              "footer": {
+                "text": "Deployed at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              }
+            }]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -X POST -d "$payload" $DISCORD_WEBHOOK
+
+      - name: Send Discord notification - Failure
+        if: failure()
+        shell: bash
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub CI/CD Bot
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        run: |
+          payload=$(cat <<EOF | jq -c .
+          {
+            "username": "$DISCORD_USERNAME",
+            "avatar_url": "$DISCORD_AVATAR",
+            "embeds": [{
+              "title": "Academy CMS - Deployment Failed",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Service",
+                  "value": "${{ env.SERVICE_NAME }}",
+                  "inline": true
+                },
+                {
+                  "name": "Branch",
+                  "value": "${{ github.ref_name }}",
+                  "inline": true
+                },
+                {
+                  "name": "Logs",
+                  "value": "[View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                  "inline": false
+                }
+              ],
+              "footer": {
+                "text": "Failed at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              }
+            }]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -X POST -d "$payload" $DISCORD_WEBHOOK

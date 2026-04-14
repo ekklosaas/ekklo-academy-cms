@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "formations",
+  "info": {
+    "singularName": "formation",
+    "pluralName": "formations",
+    "displayName": "Formation"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Titre": {
+      "type": "string",
+      "required": true
+    },
+    "Description": {
+      "type": "text",
+      "required": false
+    },
+    "Titre_en": {
+      "type": "string"
+    },
+    "Description_en": {
+      "type": "text"
+    },
+    "Titre_es": {
+      "type": "string"
+    },
+    "Description_es": {
+      "type": "text"
+    },
+    "Titre_de": {
+      "type": "string"
+    },
+    "Description_de": {
+      "type": "text"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "Titre",
+      "required": true
+    },
+    "Ordre": {
+      "type": "integer",
+      "required": false
+    },
+    "chapitres": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::chapitre.chapitre",
+      "mappedBy": "formation"
+    }
+  }
+}
