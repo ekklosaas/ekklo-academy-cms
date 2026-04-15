@@ -19,7 +19,9 @@ module.exports = ({ env }) => {
           baseUrl,
           rootPath,
           s3Options: {
-            endpoint: `https://${env('STORAGE_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
+            endpoint:
+              env('STORAGE_ENDPOINT') ||
+              `https://${env('STORAGE_ACCOUNT_ID')}.${env('STORAGE_JURISDICTION', 'eu.')}r2.cloudflarestorage.com`,
             region: 'auto',
             credentials: {
               accessKeyId: env('STORAGE_ACCESS_KEY'),
