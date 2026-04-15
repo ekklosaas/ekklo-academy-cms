@@ -1,27 +1,42 @@
-module.exports = ({ env }) => ({
-  upload: {
-    config: {
-      provider: 'aws-s3',
-      providerOptions: {
-        baseUrl: env('R2_PUBLIC_URL'),
-        s3Options: {
-          endpoint: env('R2_ENDPOINT'),
-          region: env('R2_REGION', 'auto'),
-          credentials: {
-            accessKeyId: env('R2_ACCESS_KEY_ID'),
-            secretAccessKey: env('R2_SECRET_ACCESS_KEY'),
+const { URL } = require('url');
+
+module.exports = ({ env }) => {
+  const assetUrl = env('STORAGE_ASSET_URL');
+  let baseUrl;
+  let rootPath;
+
+  if (assetUrl) {
+    const u = new URL(assetUrl);
+    baseUrl = `${u.protocol}//${u.host}`;
+    rootPath = u.pathname.replace(/^\/|\/$/g, '') || undefined;
+  }
+
+  return {
+    upload: {
+      config: {
+        provider: 'aws-s3',
+        providerOptions: {
+          baseUrl,
+          rootPath,
+          s3Options: {
+            endpoint: `https://${env('STORAGE_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
+            region: 'auto',
+            credentials: {
+              accessKeyId: env('STORAGE_ACCESS_KEY'),
+              secretAccessKey: env('STORAGE_SECRET_KEY'),
+            },
+            params: {
+              Bucket: env('STORAGE_BUCKET_NAME'),
+            },
+            forcePathStyle: true,
           },
-          params: {
-            Bucket: env('R2_BUCKET'),
-          },
-          forcePathStyle: true,
+        },
+        actionOptions: {
+          upload: {},
+          uploadStream: {},
+          delete: {},
         },
       },
-      actionOptions: {
-        upload: {},
-        uploadStream: {},
-        delete: {},
-      },
     },
-  },
-});
+  };
+};
