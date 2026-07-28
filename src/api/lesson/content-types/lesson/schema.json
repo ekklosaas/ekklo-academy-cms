@@ -44,6 +44,15 @@
     },
     "Video": {
       "type": "string"
+    },
+    "Video_en": {
+      "type": "string"
+    },
+    "Video_es": {
+      "type": "string"
+    },
+    "Video_de": {
+      "type": "string"
     }
   }
 }
