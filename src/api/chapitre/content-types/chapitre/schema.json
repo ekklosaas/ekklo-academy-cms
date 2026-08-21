@@ -36,6 +36,18 @@
     "Description_de": {
       "type": "text"
     },
+    "Titre_it": {
+      "type": "string"
+    },
+    "Description_it": {
+      "type": "text"
+    },
+    "Titre_pt": {
+      "type": "string"
+    },
+    "Description_pt": {
+      "type": "text"
+    },
     "Ordre": {
       "type": "integer",
       "required": true

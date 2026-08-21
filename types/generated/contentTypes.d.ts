@@ -478,6 +478,8 @@ export interface ApiChapitreChapitre extends Struct.CollectionTypeSchema {
     Description_de: Schema.Attribute.Text;
     Description_en: Schema.Attribute.Text;
     Description_es: Schema.Attribute.Text;
+    Description_it: Schema.Attribute.Text;
+    Description_pt: Schema.Attribute.Text;
     formation: Schema.Attribute.Relation<
       'manyToOne',
       'api::formation.formation'
@@ -495,6 +497,8 @@ export interface ApiChapitreChapitre extends Struct.CollectionTypeSchema {
     Titre_de: Schema.Attribute.String;
     Titre_en: Schema.Attribute.String;
     Titre_es: Schema.Attribute.String;
+    Titre_it: Schema.Attribute.String;
+    Titre_pt: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -520,6 +524,8 @@ export interface ApiFormationFormation extends Struct.CollectionTypeSchema {
     Description_de: Schema.Attribute.Text;
     Description_en: Schema.Attribute.Text;
     Description_es: Schema.Attribute.Text;
+    Description_it: Schema.Attribute.Text;
+    Description_pt: Schema.Attribute.Text;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -533,6 +539,8 @@ export interface ApiFormationFormation extends Struct.CollectionTypeSchema {
     Titre_de: Schema.Attribute.String;
     Titre_en: Schema.Attribute.String;
     Titre_es: Schema.Attribute.String;
+    Titre_it: Schema.Attribute.String;
+    Titre_pt: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -554,6 +562,8 @@ export interface ApiLessonLesson extends Struct.CollectionTypeSchema {
     Contenu_de: Schema.Attribute.Blocks;
     Contenu_en: Schema.Attribute.Blocks;
     Contenu_es: Schema.Attribute.Blocks;
+    Contenu_it: Schema.Attribute.Blocks;
+    Contenu_pt: Schema.Attribute.Blocks;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -569,10 +579,15 @@ export interface ApiLessonLesson extends Struct.CollectionTypeSchema {
     Titre_de: Schema.Attribute.String;
     Titre_en: Schema.Attribute.String;
     Titre_es: Schema.Attribute.String;
+    Titre_it: Schema.Attribute.String;
+    Titre_pt: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     Video: Schema.Attribute.String;
+    Video_de: Schema.Attribute.String;
+    Video_en: Schema.Attribute.String;
+    Video_es: Schema.Attribute.String;
   };
 }
 
