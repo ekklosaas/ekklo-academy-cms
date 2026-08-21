@@ -24,6 +24,12 @@
     "Titre_de": {
       "type": "string"
     },
+    "Titre_it": {
+      "type": "string"
+    },
+    "Titre_pt": {
+      "type": "string"
+    },
     "slug": {
       "type": "uid",
       "targetField": "Titre",
@@ -40,6 +46,12 @@
       "type": "blocks"
     },
     "Contenu_de": {
+      "type": "blocks"
+    },
+    "Contenu_it": {
+      "type": "blocks"
+    },
+    "Contenu_pt": {
       "type": "blocks"
     },
     "Video": {
