@@ -71,14 +71,44 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.REGISTRY_URL }}/${{ env.SERVICE_NAME }}:latest
+          tags: |
+            ${{ secrets.REGISTRY_URL }}/${{ env.SERVICE_NAME }}:latest
+            ${{ secrets.REGISTRY_URL }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
-      - name: Trigger Coolify deploy
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: "${{ secrets.COOLIFY_API_DOMAIN }}/api/v1/deploy?uuid=${{ secrets.COOLIFY_PRODUCTION_PROJECT_UUID }}"
-          method: "GET"
-          bearerToken: ${{ secrets.COOLIFY_API_TOKEN }}
+      # anvl resolves the target app from the token and pulls the immutable
+      # commit tag, so a deploy is always the exact image this run built.
+      - name: Deploy to anvl
+        env:
+          IMAGE: ${{ secrets.REGISTRY_URL }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          TOKEN: ${{ secrets.ANVL_DEPLOY_TOKEN }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN}" ]; then
+            echo "::error::Missing ANVL_DEPLOY_TOKEN repository secret."
+            exit 1
+          fi
+          payload="$(jq -n \
+            --arg image  "${IMAGE}" \
+            --arg sha    "${GITHUB_SHA}" \
+            --arg branch "${GITHUB_REF_NAME}" \
+            --arg msg    "${COMMIT_MESSAGE:-}" \
+            --arg actor  "${GITHUB_ACTOR}" \
+            --arg url    "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            '{image:$image, commit_sha:$sha, branch:$branch, commit_message:$msg, commit_author:$actor, ci_run_url:$url}')"
+          code="$(curl -sS -o /tmp/anvl-resp.json -w '%{http_code}' \
+            --retry 3 --retry-delay 5 --retry-connrefused \
+            -X POST https://ekklo.anvl.sh/api/v1/deploy/webhook \
+            -H 'Content-Type: application/json' \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -d "${payload}")"
+          echo "anvl responded HTTP ${code}:"
+          cat /tmp/anvl-resp.json 2>/dev/null || true
+          echo
+          case "${code}" in
+            200|201|202) echo "✅ Deploy accepted" ;;
+            *) echo "::error::anvl deploy failed (HTTP ${code})."; exit 1 ;;
+          esac
 
       - name: Send Discord notification - Success
         if: success()
